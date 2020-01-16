@@ -1,8 +1,15 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 
-const api = require('./api')
-const middleware = require('./middleware')
+const { updateStudent, removeStudent, getStudent } = require('./api')
+const {
+  validateParameters,
+  checkIfFileHasData,
+  handleError,
+  notFound
+} = require('./middleware')
+
+const router = express.Router()
 
 const PORT = process.env.PORT || 1337
 
@@ -10,14 +17,29 @@ const app = express()
 
 app.use(bodyParser.json())
 
-app.get('/health', api.getHealth)
+router.put('/:student_id/:propertyName(*)', validateParameters, updateStudent)
+router.get(
+  '/:student_id/:propertyName(*)',
+  validateParameters,
+  checkIfFileHasData,
+  getStudent
+)
 
-app.use(middleware.handleError)
-app.use(middleware.notFound)
+router.delete(
+  '/:student_id/:propertyName(*)',
+  validateParameters,
+  checkIfFileHasData,
+  removeStudent
+)
 
 const server = app.listen(PORT, () =>
   console.log(`Server listening on port ${PORT}`)
 )
+
+app.use(router)
+
+app.use(handleError)
+app.use(notFound)
 
 if (require.main !== module) {
   module.exports = server
